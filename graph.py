@@ -6,11 +6,20 @@ the simulation one step at a time.
 """
 
 from __future__ import annotations
+import random
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from node import Node, NODE_REGISTRY
+from node import *
+
+
+DT = .1  # time step (e.g., 100ms)
+RATE = .1  # events per second
+
+
+def step_poisson(rate = RATE, dt = DT):
+    return random.random() < rate * dt
 
 
 class Graph:
@@ -77,6 +86,29 @@ class Graph:
         self._notify()
         return True
 
+    def add_mirrored_edge(self, src_id: str, dst_id: str) -> bool:
+        """Add a directed edge; returns False if either node is missing or edge exists."""
+        with self._lock:
+            if src_id not in self.nodes or dst_id not in self.nodes:
+                return False
+            if any(e["src"] == src_id and e["dst"] == dst_id for e in self.edges):
+                return False
+            self.edges.append({"src": src_id, "dst": dst_id})
+            self.edges.append({"src": dst_id, "dst": src_id})
+        self._notify()
+        return True
+
+    def swap_edges(self, src_id: str, dst_id:str) -> None:
+        src_edges = filter (lambda edge: edge["src"] == src_id ,self.edges)
+        dst_edges = filter (lambda edge: edge["src"] == dst_id ,self.edges)
+
+        self.edges = list(filter(lambda edge: edge["src"] not in {src_id, dst_id} ,self.edges))
+        src_edges = [{"src" : src_id, "dst":edge["dst"]} for edge in dst_edges]
+        dst_edges = [{"src" : dst_id, "dst":edge["dst"]} for edge in src_edges]
+
+        self.edges += src_edges + dst_edges
+        return
+
     def remove_edge(self, src_id: str, dst_id: str) -> None:
         with self._lock:
             self.edges = [e for e in self.edges
@@ -129,6 +161,15 @@ class Graph:
         with self._lock:
             for _ in range(n):
                 self.step_count += 1
+                
+                edges_to_swap = list(filter(lambda _:step_poisson()  ,self.edges))
+                random.shuffle(edges_to_swap)
+
+                for pair in edges_to_swap:
+                    self._event_log.append(
+                        f"[step {self.step_count}] SWAP {pair["src"]} , {pair["dst"]}")
+                    self.swap_edges(pair["src"], pair["dst"])
+
                 for node in list(self.nodes.values()):
                     node.step(self)
         self._notify()

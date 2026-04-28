@@ -106,6 +106,22 @@ class Node:
 # Built-in archetypes
 # ======================================================================
 
+class PeerSwapNode(Node):
+    TYPE_NAME = "counter"
+    COLOR = "#f7a24f"
+
+    def __init__(self, node_id=None, label="", broadcast_every: int = 3, **kw):
+        super().__init__(node_id, label or "Counter", color=self.COLOR, **kw)
+        self.state.setdefault("count", 0)
+        self.broadcast_every = broadcast_every
+
+    def proactive(self, graph):
+        pass
+
+    def reactive(self, event, graph):
+        self.log(f"← {event['type']} from {event.get('from','?')}")
+
+
 class CounterNode(Node):
     """
     Increments a counter each step.

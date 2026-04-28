@@ -34,7 +34,7 @@ from tkinter import ttk, simpledialog, messagebox
 from typing import Dict, List, Optional, Tuple
 
 from graph import Graph
-from node import NODE_REGISTRY, CounterNode, RelayNode, SinkNode, RandomWalkerNode
+from node import NODE_REGISTRY, Node
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ ACCENT2     = "#6fcf7a"
 TEXT        = "#e0e0f0"
 TEXT_DIM    = "#6b7080"
 NODE_R      = 22          # node circle radius (px)
-EDGE_COLOR  = "#3a4060"
+EDGE_COLOR  = "#0aaaff"
 EDGE_ACTIVE = "#f7a24f"   # colour flash for recently used edges
 FONT_MONO   = ("Courier", 9)
 FONT_UI     = ("TkDefaultFont", 9)
@@ -816,17 +816,17 @@ class App(tk.Tk):
 
 def build_demo_graph() -> Graph:
     g = Graph()
-    a = CounterNode(node_id="A", label="Counter A", broadcast_every=2)
-    b = RelayNode  (node_id="B", label="Relay B")
-    c = SinkNode   (node_id="C", label="Sink C")
-    d = RandomWalkerNode(node_id="D", label="Walker D")
+    a = Node (node_id="A", label="A")
+    b = Node   (node_id="B", label="B")
+    c = Node    (node_id="C", label="C")
+    d = Node (node_id="D", label="D")
     for n in (a, b, c, d):
         g.add_node(n)
-    g.add_edge("A", "B")
-    g.add_edge("B", "C")
-    g.add_edge("A", "C")
-    g.add_edge("D", "B")
-    g.add_edge("C", "D")
+    g.add_mirrored_edge("A", "B")
+    g.add_mirrored_edge("B", "C")
+    g.add_mirrored_edge("A", "C")
+    g.add_mirrored_edge("D", "B")
+    g.add_mirrored_edge("C", "D")
     return g
 
 
