@@ -27,15 +27,15 @@ from __future__ import annotations
 
 import math
 import random
+import string 
 import threading
 import time
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 from typing import Dict, List, Optional, Tuple
-
 from graph import Graph
 from node import NODE_REGISTRY, Node
-
+import networkx
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Constants & palette
@@ -814,24 +814,29 @@ class App(tk.Tk):
 # Seed graph & launch
 # ──────────────────────────────────────────────────────────────────────────────
 
+def build_regular_graph() -> Graph:
+    g = Graph.from_networkx(networkx.random_regular_graph(4, 18))
+    return g
+
 def build_demo_graph() -> Graph:
     g = Graph()
     a = Node (node_id="A", label="A")
     b = Node   (node_id="B", label="B")
     c = Node    (node_id="C", label="C")
     d = Node (node_id="D", label="D")
+    e = Node (node_id="E", label="E")
     for n in (a, b, c, d):
         g.add_node(n)
     g.add_mirrored_edge("A", "B")
-    g.add_mirrored_edge("B", "C")
     g.add_mirrored_edge("A", "C")
-    g.add_mirrored_edge("D", "B")
+
+    g.add_mirrored_edge("B", "C")
     g.add_mirrored_edge("C", "D")
+    g.add_mirrored_edge("D", "B")
     return g
 
-
 if __name__ == "__main__":
-    graph = build_demo_graph()
+    graph = build_regular_graph()
     app = App(graph)
     app._bind_keys()
     app.mainloop()

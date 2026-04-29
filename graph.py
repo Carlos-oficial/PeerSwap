@@ -45,6 +45,28 @@ class Graph:
         # Callbacks fired after each step (UI hooks in here)
         self._on_change: List[Callable] = []
 
+    @classmethod
+    def from_networkx(cls, nx_graph):
+        graph = cls()
+
+        # Add nodes
+        for node_id, data in nx_graph.nodes(data=True):
+            # Assuming Node can be initialized with an id and optional data
+            graph.nodes[str(node_id)] = Node(node_id=str(node_id), label=str(node_id))
+
+        # Add edges
+        for src, dst in nx_graph.edges():
+            graph.edges.append({
+                "src": str(src),
+                "dst": str(dst)
+            })
+
+            graph.edges.append({
+                "src": str(dst),
+                "dst": str(src)
+            })
+        return graph
+
     # ------------------------------------------------------------------
     # Observer
     # ------------------------------------------------------------------
