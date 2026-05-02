@@ -121,14 +121,18 @@ class Graph:
         return True
 
     def swap_edges(self, src_id: str, dst_id:str) -> None:
-        src_edges = filter (lambda edge: edge["src"] == src_id ,self.edges)
-        dst_edges = filter (lambda edge: edge["src"] == dst_id ,self.edges)
+        src_outgoing_edges = list(filter (lambda edge: edge["src"] == src_id ,self.edges))
+        src_incoming_edges = list(filter (lambda edge: edge["dst"] == src_id ,self.edges))
+        dst_outgoing_edges = list(filter (lambda edge: edge["src"] == dst_id ,self.edges))
+        dst_incoming_edges = list(filter (lambda edge: edge["dst"] == dst_id ,self.edges))
 
-        self.edges = list(filter(lambda edge: edge["src"] not in {src_id, dst_id} ,self.edges))
-        src_edges = [{"src" : src_id, "dst":edge["dst"]} for edge in dst_edges]
-        dst_edges = [{"src" : dst_id, "dst":edge["dst"]} for edge in src_edges]
+        self.edges = list(filter(lambda edge: not {edge["src"],edge["dst"]}.intersection({src_id, dst_id}) ,self.edges))
+        
+        
+        flipped_edges = [{"src" : edge["dst"], "dst":edge["src"]} for edge in (src_incoming_edges + src_outgoing_edges + dst_incoming_edges + dst_outgoing_edges)]
+        # dst_edges = [{"src" : dst_id, "dst":edge["dst"]} for edge in src_edges]
 
-        self.edges += src_edges + dst_edges
+        self.edges += flipped_edges # + dst_edges
         return
 
     def remove_edge(self, src_id: str, dst_id: str) -> None:
