@@ -34,7 +34,7 @@ import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
 from typing import Dict, List, Optional, Tuple
 from graph import Graph
-from node import NODE_REGISTRY, Node
+from node import *
 import networkx
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -815,7 +815,7 @@ class App(tk.Tk):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def build_regular_graph() -> Graph:
-    g = Graph.from_networkx(networkx.random_regular_graph(4, 18))
+    g = Graph.from_networkx(networkx.random_regular_graph(2, 4))
     return g
 
 def build_demo_graph() -> Graph:

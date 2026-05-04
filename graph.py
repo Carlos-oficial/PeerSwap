@@ -10,7 +10,7 @@ import random
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple
-
+import string
 from node import *
 
 
@@ -52,7 +52,7 @@ class Graph:
         # Add nodes
         for node_id, data in nx_graph.nodes(data=True):
             # Assuming Node can be initialized with an id and optional data
-            graph.nodes[str(node_id)] = Node(node_id=str(node_id), label=str(node_id))
+            graph.nodes[str(node_id)] = Node(node_id=str(node_id), label= str(node_id) ) # string.ascii_lowercase[node_id]
 
         # Add edges
         for src, dst in nx_graph.edges():
@@ -121,18 +121,49 @@ class Graph:
         return True
 
     def swap_edges(self, src_id: str, dst_id:str) -> None:
-        src_outgoing_edges = list(filter (lambda edge: edge["src"] == src_id ,self.edges))
-        src_incoming_edges = list(filter (lambda edge: edge["dst"] == src_id ,self.edges))
-        dst_outgoing_edges = list(filter (lambda edge: edge["src"] == dst_id ,self.edges))
-        dst_incoming_edges = list(filter (lambda edge: edge["dst"] == dst_id ,self.edges))
+        if False:
+            src_outgoing_edges = list(filter (lambda edge: edge["src"] == src_id ,self.edges))
+            src_incoming_edges = list(filter (lambda edge: edge["dst"] == src_id ,self.edges))
+            dst_outgoing_edges = list(filter (lambda edge: edge["src"] == dst_id ,self.edges))
+            dst_incoming_edges = list(filter (lambda edge: edge["dst"] == dst_id ,self.edges))
+            
 
-        self.edges = list(filter(lambda edge: not {edge["src"],edge["dst"]}.intersection({src_id, dst_id}) ,self.edges))
-        
-        
-        flipped_edges = [{"src" : edge["dst"], "dst":edge["src"]} for edge in (src_incoming_edges + src_outgoing_edges + dst_incoming_edges + dst_outgoing_edges)]
-        # dst_edges = [{"src" : dst_id, "dst":edge["dst"]} for edge in src_edges]
+            self._event_log.append(
+                        f"\t\t src_ougtoing: {src_outgoing_edges}")
 
-        self.edges += flipped_edges # + dst_edges
+            self.edges = list(filter(lambda edge: not {edge["src"],edge["dst"]}.intersection({src_id, dst_id}) ,self.edges))
+            
+
+            
+            flipped_edges = [{"src" : edge["dst"], "dst":edge["src"]} for edge in (src_incoming_edges + src_outgoing_edges + dst_incoming_edges + dst_outgoing_edges)]
+            # dst_edges = [{"src" : dst_id, "dst":edge["dst"]} for edge in src_edges]
+
+            self.edges += flipped_edges # + dst_edges
+            edges = []
+            for e in self.edges:
+                if e not in edges:
+                    edges.append(e)
+            self.edges =edges
+        elif False:
+            s = self.nodes[src_id]
+            s.id = dst_id
+            d = self.nodes[dst_id]
+            d.id = src_id
+            self.nodes[src_id] = self.nodes[dst_id]
+            self.nodes[dst_id] = s
+        else:
+            def f(edge):
+                if edge["src"] == src_id:
+                    edge["src"] = dst_id
+                elif edge["src"] == dst_id:
+                    edge["src"] = src_id
+                if edge["dst"] == src_id:
+                    edge["dst"] = dst_id
+                elif edge["dst"] == dst_id:
+                    edge["dst"] = src_id
+                return edge
+            self.edges = [f(edge) for edge in self.edges]
+
         return
 
     def remove_edge(self, src_id: str, dst_id: str) -> None:

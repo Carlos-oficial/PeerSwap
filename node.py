@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 import uuid
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+import random
 
 if TYPE_CHECKING:
     from graph import Graph
@@ -37,7 +38,8 @@ class Node:
     ):
         self.id: str = node_id or str(uuid.uuid4())[:6]
         self.label: str = label or self.id
-        self.color: str = color
+        r = lambda: random.randint(0,255)
+        self.color: str = '#%02X%02X%02X' % (r(),r(),r())
         self.state: Dict[str, Any] = dict(state_kwargs)
 
         self._inbox: List[Dict] = []
