@@ -187,6 +187,8 @@ class App(tk.Tk):
         self._build_main_area()
         self._build_statusbar()
 
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+
         # Force layout
         self.layout = ForceLayout(800, 600)
 
@@ -201,6 +203,23 @@ class App(tk.Tk):
         # Start layout ticker
         self._tick_layout()
         self._refresh_inspector()
+    def _on_close(self):
+        """Dump all node states to JSON, then destroy the window."""
+        import json, pathlib, datetime
+
+        snapshot = self.graph.snapshot()
+        out = {
+            "exported_at": datetime.datetime.now().isoformat(),
+            "step": snapshot["step"],
+            "nodes": snapshot["nodes"],   # already list of to_dict()
+        }
+
+        path = pathlib.Path("node_states.json")
+        with open(path, "w") as f:
+            json.dump(out, f, indent=2)
+
+        print(f"[app] Node states written to {path.resolve()}")
+        self.destroy()
 
     # ──────────────────────────────────────────────────────────────────
     # Style setup
@@ -815,8 +834,31 @@ class App(tk.Tk):
 # ──────────────────────────────────────────────────────────────────────────────
 
 def build_regular_graph() -> Graph:
-    g = Graph.from_networkx(networkx.random_regular_graph(2, 4))
+    g = Graph.from_networkx(networkx.random_regular_graph(4, 20))
+    g.nodes[list(g.nodes.keys())[0]].state["want_nemo"] = True
+    g.nodes[list(g.nodes.keys())[0]].color = "#F00000"
+    g.nodes[list(g.nodes.keys())[0]].label = "Want"
+    g.nodes[list(g.nodes.keys())[0]].broadcast_every = 10
+
+    g.nodes[list(g.nodes.keys())[2]].state["has_nemo"] = True
+    g.nodes[list(g.nodes.keys())[2]].label = "Nemo"
+    g.nodes[list(g.nodes.keys())[2]].color = "#a0F0a0"
+
     return g
+
+def build_dumbell_graph() -> Graph:
+    g = Graph.from_networkx(networkx.barbell_graph(4, 0))
+    g.nodes[list(g.nodes.keys())[0]].state["want_nemo"] = True
+    g.nodes[list(g.nodes.keys())[0]].color = "#F00000"
+    g.nodes[list(g.nodes.keys())[0]].label = "Want"
+    g.nodes[list(g.nodes.keys())[0]].broadcast_every = 10
+
+    g.nodes[list(g.nodes.keys())[2]].state["has_nemo"] = True
+    g.nodes[list(g.nodes.keys())[2]].label = "Nemo"
+    g.nodes[list(g.nodes.keys())[2]].color = "#a0F0a0"
+
+    return g
+
 
 def build_demo_graph() -> Graph:
     g = Graph()
@@ -836,7 +878,7 @@ def build_demo_graph() -> Graph:
     return g
 
 if __name__ == "__main__":
-    graph = build_regular_graph()
+    graph = build_dumbell_graph()
     app = App(graph)
     app._bind_keys()
     app.mainloop()
